@@ -1,1 +1,2 @@
-/// <reference types="vite/client" />
+
+// No TypeScript definitions needed anymore
