@@ -22,7 +22,7 @@ const useAuthStore = create(
     }),
     {
       name: 'aqua_user', // Key used to store data in localStorage
-      partialize: (state) => ({user: state.user}), // Persist only the `user` state
+      partialize: (state) => ({ user: state.user }), // Only persist the user field
     }
   )
 );
