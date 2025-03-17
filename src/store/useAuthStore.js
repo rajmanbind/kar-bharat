@@ -5,7 +5,26 @@ import { persist } from 'zustand/middleware';
 /**
  * Authentication store to manage user state
  * @type {import('zustand').StoreApi<{
- *   user: null | {id: string, email: string, name?: string, school?: string, schoolID?: string, adminID?: string, userId?: string},
+ *   user: null | {
+ *     _id: string, 
+ *     name: string, 
+ *     email: string, 
+ *     phone: string,
+ *     type: string,
+ *     address: {
+ *       street?: string,
+ *       city?: string,
+ *       state?: string,
+ *       zipCode?: string,
+ *       country?: string
+ *     },
+ *     profileImage?: string,
+ *     skills?: string[],
+ *     rating?: number,
+ *     ratingCount?: number,
+ *     brokerId?: string,
+ *     token: string
+ *   },
  *   setUser: (user: any) => void,
  *   logout: () => void
  * }>}
