@@ -2,6 +2,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+/**
+ * Authentication store to manage user state
+ * @type {import('zustand').StoreApi<{
+ *   user: null | {id: string, email: string, name?: string, school?: string, schoolID?: string, adminID?: string, userId?: string},
+ *   setUser: (user: any) => void,
+ *   logout: () => void
+ * }>}
+ */
 const useAuthStore = create(
   persist(
     (set) => ({
@@ -16,9 +24,7 @@ const useAuthStore = create(
     {
       name: 'aqua_user', // Key used to store data in localStorage
       partialize: (state) => ({ 
-        user: state.user,
-        setUser: state.setUser,
-        logout: state.logout
+        user: state.user 
       }),
     }
   )
