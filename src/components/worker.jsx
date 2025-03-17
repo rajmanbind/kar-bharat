@@ -1,242 +1,138 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/components/ui/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, User, Briefcase, CheckCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { toast } from "@/hooks/use-toast";
+import { User, MapPin, Clock } from "lucide-react";
 
-const WORKER_TYPES = {
-  CARPENTER: 'carpenter',
-  MECHANIC: 'mechanic',
-  DESIGNER: 'designer'
-};
+const workerTypes = [
+  { id: 'carpenter', name: 'Carpenter', color: 'bg-amber-100 text-amber-800' },
+  { id: 'mechanic', name: 'Mechanic', color: 'bg-blue-100 text-blue-800' },
+  { id: 'designer', name: 'Designer', color: 'bg-purple-100 text-purple-800' },
+  { id: 'painter', name: 'Painter', color: 'bg-green-100 text-green-800' },
+  { id: 'plumber', name: 'Plumber', color: 'bg-red-100 text-red-800' },
+];
 
 const BrokerWorker = ({ workerId, onComplete }) => {
-  const [status, setStatus] = useState('idle'); // idle, processing, assigned, completed, failed
   const [progress, setProgress] = useState(0);
-  const [taskInfo, setTaskInfo] = useState(null);
-  const [workerType, setWorkerType] = useState(WORKER_TYPES.CARPENTER);
-  const [assignedCustomer, setAssignedCustomer] = useState(null);
-
-  useEffect(() => {
-    // Simulate fetching worker information
-    const fetchWorkerInfo = async () => {
-      try {
-        // This would be replaced with an actual API call
-        setTaskInfo({
-          id: workerId,
-          type: workerType,
-          started: new Date().toISOString(),
-          estimated_completion: null
-        });
-      } catch (error) {
-        console.error("Error fetching worker info:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load worker information",
-          variant: "destructive"
-        });
-      }
-    };
-
-    if (workerId) {
-      fetchWorkerInfo();
-    }
-  }, [workerId, workerType]);
-
-  const startProcessing = () => {
-    if (!assignedCustomer) {
-      toast({
-        title: "Assignment Required",
-        description: "Please assign this worker to a customer first",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setStatus('processing');
-    
-    // Simulate a processing task with progress updates
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += 5;
-      setProgress(currentProgress);
-      
-      if (currentProgress >= 100) {
-        clearInterval(interval);
-        setStatus('completed');
-        if (onComplete) onComplete(workerId);
-        
-        toast({
-          title: "Service Completed",
-          description: `Worker ${workerId} has completed the service at ${assignedCustomer.location}`,
-        });
-      }
-    }, 500);
-  };
-
-  const assignToCustomer = () => {
-    // Simulate assigning to a random customer
+  const [status, setStatus] = useState('idle'); // idle, working, completed
+  const [customer, setCustomer] = useState(null);
+  
+  // Randomly select a worker type for this worker
+  const workerType = workerTypes[workerId % workerTypes.length];
+  
+  const assignCustomer = () => {
+    // Mock customer assignment
     const customers = [
-      { id: 1, name: "John Smith", location: "123 Main St" },
-      { id: 2, name: "Jane Doe", location: "456 Oak Ave" },
-      { id: 3, name: "Bob Johnson", location: "789 Pine Rd" },
-      { id: 4, name: "Alice Williams", location: "321 Maple Dr" }
+      { name: 'John Smith', location: '123 Main St.', jobDescription: 'Kitchen cabinets repair' },
+      { name: 'Alice Johnson', location: '456 Oak Ave.', jobDescription: 'Door installation' },
+      { name: 'Bob Miller', location: '789 Pine Rd.', jobDescription: 'Bookshelf assembly' },
+      { name: 'Carol Davis', location: '321 Elm St.', jobDescription: 'Window frame repair' },
+      { name: 'David Wilson', location: '654 Maple Dr.', jobDescription: 'Table and chairs assembly' }
     ];
     
     const randomCustomer = customers[Math.floor(Math.random() * customers.length)];
-    setAssignedCustomer(randomCustomer);
-    setStatus('assigned');
-    
-    toast({
-      title: "Worker Assigned",
-      description: `${workerType.charAt(0).toUpperCase() + workerType.slice(1)} assigned to ${randomCustomer.name} at ${randomCustomer.location}`,
-    });
-  };
-
-  const cancelTask = () => {
-    setStatus('idle');
+    setCustomer(randomCustomer);
+    setStatus('working');
     setProgress(0);
-    setAssignedCustomer(null);
     
     toast({
-      title: "Task Cancelled",
-      description: `Worker ${workerId} task has been cancelled.`
+      title: "Worker assigned",
+      description: `${workerType.name} has been assigned to ${randomCustomer.name}`,
     });
+    
+    // Simulate work progress
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = prev + 10;
+        
+        if (newProgress >= 100) {
+          clearInterval(interval);
+          setStatus('completed');
+          onComplete(workerId);
+          return 100;
+        }
+        
+        return newProgress;
+      });
+    }, 1000);
   };
   
-  const getWorkerTypeIcon = () => {
-    switch(workerType) {
-      case WORKER_TYPES.CARPENTER:
-        return <Briefcase className="h-5 w-5" />;
-      case WORKER_TYPES.MECHANIC:
-        return <Briefcase className="h-5 w-5" />;
-      case WORKER_TYPES.DESIGNER:
-        return <Briefcase className="h-5 w-5" />;
-      default:
-        return <User className="h-5 w-5" />;
-    }
+  const completeTask = () => {
+    setStatus('idle');
+    setCustomer(null);
+    
+    toast({
+      title: "Task completed",
+      description: `${workerType.name} has completed the task successfully`,
+      variant: "success",
+    });
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            {getWorkerTypeIcon()}
-            Worker {workerId}
-          </CardTitle>
-          <Select
-            value={workerType}
-            onValueChange={(value) => {
-              if (status === 'idle') {
-                setWorkerType(value);
-              } else {
-                toast({
-                  title: "Cannot Change Type",
-                  description: "Worker must be idle to change type",
-                  variant: "destructive"
-                });
-              }
-            }}
-            disabled={status !== 'idle'}
-          >
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={WORKER_TYPES.CARPENTER}>Carpenter</SelectItem>
-              <SelectItem value={WORKER_TYPES.MECHANIC}>Mechanic</SelectItem>
-              <SelectItem value={WORKER_TYPES.DESIGNER}>Designer</SelectItem>
-            </SelectContent>
-          </Select>
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <div>
+            <Badge className={workerType.color}>{workerType.name}</Badge>
+            <CardTitle className="mt-2 text-xl">Worker #{workerId}</CardTitle>
+          </div>
+          {status === 'idle' && <Badge variant="outline">Available</Badge>}
+          {status === 'working' && <Badge className="bg-blue-100 text-blue-800">Working</Badge>}
+          {status === 'completed' && <Badge className="bg-green-100 text-green-800">Completed</Badge>}
         </div>
-        <CardDescription>
-          {status === 'idle' && 'Ready to be assigned'}
-          {status === 'assigned' && 'Assigned to customer'}
-          {status === 'processing' && `In progress... ${progress}%`}
-          {status === 'completed' && 'Service completed successfully'}
-          {status === 'failed' && 'Service failed to complete'}
-        </CardDescription>
       </CardHeader>
-      
       <CardContent>
-        {taskInfo && (
+        {customer ? (
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Worker ID:</span>
-              <span>{taskInfo.id}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Specialty:</span>
-              <span className="capitalize">{taskInfo.type}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Started:</span>
-              <span>{new Date(taskInfo.started).toLocaleString()}</span>
-            </div>
-          </div>
-        )}
-        
-        {assignedCustomer && (
-          <div className="mt-4 p-3 bg-muted rounded-md">
-            <div className="font-medium mb-2">Customer Assignment</div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 text-sm">
               <User className="h-4 w-4 text-muted-foreground" />
-              <span>{assignedCustomer.name}</span>
+              <span>{customer.name}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-sm">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{assignedCustomer.location}</span>
+              <span>{customer.location}</span>
             </div>
-          </div>
-        )}
-        
-        {status === 'processing' && (
-          <div className="mt-4">
-            <div className="h-2 bg-secondary rounded-full">
-              <div 
-                className="h-full bg-primary rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
+            <div className="space-y-1 mt-4">
+              <div className="text-sm font-medium">Job Description:</div>
+              <p className="text-sm text-muted-foreground">{customer.jobDescription}</p>
             </div>
+            
+            {status === 'working' && (
+              <div className="mt-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Progress</span>
+                  <span>{progress}%</span>
+                </div>
+                <Progress value={progress} />
+              </div>
+            )}
           </div>
-        )}
-        
-        {status === 'completed' && (
-          <div className="mt-4 flex items-center justify-center p-3 bg-green-50 text-green-700 rounded-md">
-            <CheckCircle className="h-5 w-5 mr-2" />
-            <span>Service completed successfully</span>
+        ) : (
+          <div className="py-6 flex flex-col items-center justify-center text-center text-muted-foreground">
+            <Clock className="h-10 w-10 mb-2 opacity-50" />
+            <p>No customer assigned</p>
+            <p className="text-sm">Assign a customer to this worker</p>
           </div>
         )}
       </CardContent>
-      
-      <CardFooter className="flex justify-between">
+      <CardFooter>
         {status === 'idle' && (
-          <Button onClick={assignToCustomer}>Assign to Customer</Button>
+          <Button onClick={assignCustomer} className="w-full">
+            Assign Customer
+          </Button>
         )}
-        
-        {status === 'assigned' && (
-          <>
-            <Button onClick={startProcessing}>Start Service</Button>
-            <Button variant="outline" onClick={cancelTask}>Cancel</Button>
-          </>
+        {status === 'working' && (
+          <Button disabled className="w-full">
+            In Progress...
+          </Button>
         )}
-        
-        {status === 'processing' && (
-          <Button variant="destructive" onClick={cancelTask}>Cancel</Button>
-        )}
-        
         {status === 'completed' && (
-          <Button variant="outline" onClick={() => {
-            setStatus('idle');
-            setAssignedCustomer(null);
-          }}>New Assignment</Button>
-        )}
-        
-        {status === 'failed' && (
-          <Button variant="outline" onClick={assignToCustomer}>Retry</Button>
+          <Button onClick={completeTask} variant="outline" className="w-full">
+            Mark as Complete
+          </Button>
         )}
       </CardFooter>
     </Card>
