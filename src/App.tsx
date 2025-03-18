@@ -9,6 +9,7 @@ import Header from "./components/Header";
 import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ProfilePage from "./pages/ProfilePage";
 import CustomerPage from "./pages/CustomerPage";
 import WorkerPage from "./pages/WorkerPage";
 import BrokerPage from "./pages/BrokerPage";
@@ -51,6 +52,15 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute allowedRoles={['customer', 'worker', 'broker']}>
+                  <ProfilePage />
+                </ProtectedRoute>
+              } 
+            />
             
             <Route 
               path="/customer" 
