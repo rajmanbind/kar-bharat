@@ -8,17 +8,44 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
 import useAuthStore from '../store/useAuthStore';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+// Define Zod schema for login form validation
+const loginSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  userType: z.enum(["customer", "worker", "broker"], {
+    required_error: "Please select a user type",
+  }),
+});
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState('customer');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { setUser } = useAuthStore();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Initialize form with Zod resolver
+  const form = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      userType: "customer",
+    },
+  });
+
+  const onSubmit = async (data) => {
     setIsLoading(true);
     
     try {
@@ -27,9 +54,9 @@ const LoginPage = () => {
         // Create mock user based on type
         const user = {
           id: `user-${Math.floor(Math.random() * 1000)}`,
-          email,
-          name: email.split('@')[0],
-          type: userType
+          email: data.email,
+          name: data.email.split('@')[0],
+          type: data.userType
         };
         
         // Set user in auth store
@@ -42,11 +69,11 @@ const LoginPage = () => {
         });
         
         // Redirect based on user type
-        if (userType === 'customer') {
+        if (data.userType === 'customer') {
           navigate('/customer');
-        } else if (userType === 'worker') {
+        } else if (data.userType === 'worker') {
           navigate('/worker');
-        } else if (userType === 'broker') {
+        } else if (data.userType === 'broker') {
           navigate('/broker');
         }
         
@@ -72,57 +99,83 @@ const LoginPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="name@example.com"
+                        type="email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>I am a:</Label>
-              <RadioGroup 
-                value={userType} 
-                onValueChange={setUserType}
-                className="flex space-x-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="customer" id="customer" />
-                  <Label htmlFor="customer">Customer</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="worker" id="worker" />
-                  <Label htmlFor="worker">Worker</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="broker" id="broker" />
-                  <Label htmlFor="broker">Broker</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Log in"}
-            </Button>
-          </form>
+              
+              <FormField
+                control={form.control}
+                name="userType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>I am a:</FormLabel>
+                    <FormControl>
+                      <RadioGroup 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="customer" id="customer" />
+                          <Label htmlFor="customer">Customer</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="worker" id="worker" />
+                          <Label htmlFor="worker">Worker</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="broker" id="broker" />
+                          <Label htmlFor="broker">Broker</Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Logging in..." : "Log in"}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account? Register feature coming soon!
+            Don't have an account? <a href="/register" className="text-primary hover:underline">Register here</a>
           </p>
         </CardFooter>
       </Card>
