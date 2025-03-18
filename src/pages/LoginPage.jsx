@@ -49,6 +49,24 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
+      // In a real application, this would call your API
+      // const response = await fetch('/api/users/login', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     email: data.email,
+      //     password: data.password,
+      //     type: data.userType,
+      //   }),
+      // });
+      
+      // const userData = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(userData.message || 'Login failed');
+      // }
+      
       // Mock authentication - in a real app, this would call your API
       setTimeout(() => {
         // Create mock user based on type
