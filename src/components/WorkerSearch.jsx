@@ -186,7 +186,7 @@ const WorkerSearch = () => {
                     <SelectValue placeholder="Any rating" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any rating</SelectItem>
+                    <SelectItem value="any">Any rating</SelectItem>
                     <SelectItem value="3">3+ stars</SelectItem>
                     <SelectItem value="4">4+ stars</SelectItem>
                     <SelectItem value="4.5">4.5+ stars</SelectItem>
