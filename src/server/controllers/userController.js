@@ -1,7 +1,9 @@
-
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const { z } = require('zod');
+const { verifyOTP } = require('../utils/otpUtils');
+const redisClient = require('../config/redis');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -9,6 +11,26 @@ const generateToken = (id) => {
     expiresIn: '30d',
   });
 };
+
+// User validation schema
+const userSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please include a valid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  phone: z.string().min(10, "Please enter a valid phone number"),
+  type: z.enum(["customer", "worker", "broker"], {
+    required_error: "User type must be customer, worker, or broker"
+  }),
+  address: z.object({
+    street: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    zipCode: z.string().optional(),
+    country: z.string().optional(),
+  }).optional(),
+  skills: z.array(z.string()).optional(),
+  brokerId: z.string().optional(),
+});
 
 // @desc    Register a new user
 // @route   POST /api/users
@@ -19,9 +41,23 @@ const registerUser = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { name, email, password, phone, type, address } = req.body;
-
   try {
+    // Validate user data with Zod
+    const validation = userSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ 
+        message: 'Invalid user data',
+        errors: validation.error.errors
+      });
+    }
+
+    const { name, email, password, phone, type, address, otpVerified } = req.body;
+
+    // Check if user has verified their email with OTP
+    if (otpVerified !== 'true') {
+      return res.status(400).json({ message: 'Email verification required' });
+    }
+
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -42,6 +78,18 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
+      // Cache user in Redis for faster authentication
+      const userCache = {
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        type: user.type,
+      };
+      
+      await redisClient.set(`user:${user._id}`, JSON.stringify(userCache), {
+        EX: 86400, // 24 hours
+      });
+      
       res.status(201).json({
         _id: user._id,
         name: user.name,
@@ -201,7 +249,7 @@ const getAllWorkers = async (req, res) => {
   try {
     const workers = await User.find({ 
       type: 'worker'
-    }).select('-password');
+    }).select('-password').limit(100); // Limit to 100 workers for performance
 
     res.json(workers);
   } catch (error) {

@@ -2,6 +2,32 @@
 const Order = require('../../models/orderModel');
 const User = require('../../models/userModel');
 const { validationResult } = require('express-validator');
+const { z } = require('zod');
+const { sendNotification } = require('../../utils/notificationUtils');
+const redisClient = require('../../config/redis');
+
+// Order validation schema using Zod
+const orderSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  category: z.enum([
+    'painting', 'carpentry', 'plumbing', 'electrical', 
+    'cleaning', 'furniture', 'other'
+  ]),
+  location: z.object({
+    address: z.string().optional(),
+    city: z.string(),
+    state: z.string(),
+    zipCode: z.string().optional(),
+    coordinates: z.object({
+      lat: z.number().optional(),
+      lng: z.number().optional(),
+    }).optional(),
+  }),
+  price: z.number().optional(),
+  workerId: z.string().optional(),
+  brokerId: z.string().optional(),
+});
 
 /**
  * @desc    Create a new order
@@ -15,6 +41,15 @@ const createOrder = async (req, res) => {
   }
 
   try {
+    // Validate order data with Zod
+    const validation = orderSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ 
+        message: 'Invalid order data',
+        errors: validation.error.errors
+      });
+    }
+
     const { title, description, category, location, price, workerId, brokerId } = req.body;
 
     // Create a new order
@@ -36,6 +71,43 @@ const createOrder = async (req, res) => {
     }
 
     const createdOrder = await order.save();
+
+    // Send notifications
+    if (workerId) {
+      const worker = await User.findById(workerId);
+      
+      // If worker is independent (no broker)
+      if (!worker.brokerId) {
+        // Send notification directly to worker
+        await sendNotification(workerId, 'order_assigned', {
+          orderId: createdOrder._id,
+          title: createdOrder.title,
+          customerName: req.user.name,
+          customerPhone: req.user.phone,
+          location: createdOrder.location,
+        });
+      } 
+      // If worker is associated with a broker
+      else if (worker.brokerId) {
+        // Send notification to broker
+        await sendNotification(worker.brokerId, 'worker_booked', {
+          orderId: createdOrder._id,
+          workerId: workerId,
+          workerName: worker.name,
+          title: createdOrder.title,
+          customerName: req.user.name,
+          location: createdOrder.location,
+        });
+      }
+    }
+    
+    // Cache order details for faster access
+    await redisClient.set(`order:${createdOrder._id}`, JSON.stringify({
+      _id: createdOrder._id,
+      title: createdOrder.title,
+      status: createdOrder.status,
+      customer: req.user._id,
+    }), { EX: 3600 }); // 1 hour cache
 
     res.status(201).json(createdOrder);
   } catch (error) {
