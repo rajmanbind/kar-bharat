@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import useAuthStore from '../store/useAuthStore';
 import WorkerSearch from '../components/WorkerSearch';
+import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 
 const serviceTypes = [
   { id: 'painting', name: 'Painting' },
@@ -186,4 +189,55 @@ const CustomerPage = () => {
                     <div className="space-y-4">
                       {orders.map((order) => (
                         <div key={order.id} className="border rounded-lg p-4">
-                          <
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h3 className="font-medium">
+                                {serviceTypes.find(s => s.id === order.serviceType)?.name}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                Order #{order.id}
+                              </p>
+                            </div>
+                            <Badge 
+                              className={
+                                order.status === 'completed' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : order.status === 'in-progress' 
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-yellow-100 text-yellow-800'
+                              }
+                            >
+                              {order.status === 'pending' ? 'Pending' : 
+                               order.status === 'in-progress' ? 'In Progress' : 'Completed'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="space-y-1 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span>{new Date(order.date).toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-muted-foreground" />
+                              <span>{order.location}</span>
+                            </div>
+                          </div>
+                          
+                          <Separator className="my-2" />
+                          
+                          <p className="text-sm mt-2">{order.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default CustomerPage;
