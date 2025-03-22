@@ -1,4 +1,3 @@
-
 const express = require('express');
 const { check } = require('express-validator');
 const { 
@@ -9,7 +8,7 @@ const {
   getWorkersByBroker,
   getAllWorkers,
   getAllBrokers
-} = require('../controllers/userController');
+} = require('../controllers/user');
 const { sendOTP, verifyUserOTP } = require('../controllers/otpController');
 const { protect, admin } = require('../middleware/auth');
 const upload = require('../middleware/uploadMiddleware');
