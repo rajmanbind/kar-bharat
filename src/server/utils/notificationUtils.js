@@ -1,5 +1,6 @@
 
 const redisClient = require('../config/redis');
+const Notification = require('../models/notificationModel');
 
 /**
  * Send a notification to a user
@@ -10,14 +11,14 @@ const redisClient = require('../config/redis');
 const sendNotification = async (userId, type, data) => {
   try {
     const notification = {
-      id: Date.now().toString(),
+      id: data.id || Date.now().toString(),
       type,
       data,
       timestamp: new Date().toISOString(),
       read: false,
     };
 
-    // Store notification in Redis
+    // Store notification in Redis for real-time access
     const key = `notifications:${userId}`;
     
     // Get existing notifications array or create empty array
@@ -42,6 +43,23 @@ const sendNotification = async (userId, type, data) => {
       userId,
       notification,
     }));
+    
+    // Also persist to MongoDB for long-term storage if we have an ID
+    if (data.id && data.id.match(/^[0-9a-fA-F]{24}$/)) {
+      // Notification is already stored in MongoDB
+      return notification;
+    }
+    
+    // Create new notification in MongoDB
+    await Notification.create({
+      recipient: userId,
+      sender: data.sender || null,
+      type,
+      title: data.title || 'New Notification',
+      message: data.message || JSON.stringify(data),
+      relatedOrder: data.orderId || null,
+      isRead: false
+    });
     
     return notification;
   } catch (error) {
