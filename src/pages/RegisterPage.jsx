@@ -25,8 +25,9 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 import useAuthStore from '../store/useAuthStore';
+import OTPVerification from '../components/OTPVerification';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -44,6 +45,8 @@ const formSchema = z.object({
 
 const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showOtpDialog, setShowOtpDialog] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
   const navigate = useNavigate();
   const { setUser } = useAuthStore();
   
@@ -59,7 +62,39 @@ const RegisterPage = () => {
     },
   });
 
+  const handleVerifyEmail = () => {
+    const email = form.getValues("email");
+    if (!email) {
+      form.setError("email", { 
+        type: "manual", 
+        message: "Please enter your email first" 
+      });
+      return;
+    }
+    if (!form.formState.dirtyFields.email || form.getFieldState("email").invalid) {
+      form.trigger("email");
+      if (form.getFieldState("email").invalid) return;
+    }
+    setShowOtpDialog(true);
+  };
+
+  const onOtpVerified = (verified) => {
+    setIsEmailVerified(verified);
+    if (verified) {
+      toast.success("Email verified successfully", {
+        description: "Your email has been verified. You can now complete registration."
+      });
+    }
+  };
+
   const onSubmit = async (values) => {
+    if (!isEmailVerified) {
+      toast.error("Email verification required", {
+        description: "Please verify your email before completing registration."
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -75,6 +110,7 @@ const RegisterPage = () => {
       //     password: values.password,
       //     phone: values.phone,
       //     type: values.type,
+      //     otpVerified: 'true', // Important: This tells the backend that OTP is verified
       //   }),
       // });
       
@@ -146,9 +182,32 @@ const RegisterPage = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="john@example.com" {...field} />
-                    </FormControl>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input 
+                          type="email" 
+                          placeholder="john@example.com" 
+                          {...field} 
+                          className={isEmailVerified ? "pr-8 border-green-500" : ""}
+                        />
+                      </FormControl>
+                      <Button 
+                        type="button" 
+                        variant={isEmailVerified ? "outline" : "secondary"}
+                        className="flex-shrink-0"
+                        onClick={handleVerifyEmail}
+                        disabled={isEmailVerified}
+                      >
+                        {isEmailVerified ? (
+                          <>Verified</>
+                        ) : (
+                          <>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Verify
+                          </>
+                        )}
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -229,7 +288,11 @@ const RegisterPage = () => {
                 )}
               />
               
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading || !isEmailVerified}
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -237,18 +300,32 @@ const RegisterPage = () => {
                   </>
                 ) : "Create account"}
               </Button>
+              
+              {!isEmailVerified && (
+                <p className="text-sm text-center text-amber-500">
+                  Please verify your email before registration
+                </p>
+              )}
             </form>
           </Form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/login" className="text-aqua-600 hover:underline">
+            <Link to="/login" className="text-primary hover:underline">
               Log in
             </Link>
           </p>
         </CardFooter>
       </Card>
+      
+      {/* OTP Verification Dialog */}
+      <OTPVerification 
+        isOpen={showOtpDialog}
+        onClose={() => setShowOtpDialog(false)}
+        email={form.getValues("email")}
+        onVerified={onOtpVerified}
+      />
     </div>
   );
 };
