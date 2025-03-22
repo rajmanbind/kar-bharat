@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React from "react"; // Add explicit React import
 import Header from "./components/Header";
 import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
@@ -16,6 +17,7 @@ import BrokerPage from "./pages/BrokerPage";
 import NotFound from "./pages/NotFound";
 import useAuthStore from "./store/useAuthStore";
 
+// Create QueryClient as a constant outside of component
 const queryClient = new QueryClient();
 
 // Protected route component
@@ -40,7 +42,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
-const App = () => (
+// Define App as a function component explicitly with React.FC type
+const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
