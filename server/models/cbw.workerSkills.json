@@ -1,0 +1,78 @@
+[{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8e9c"
+  },
+  "name": "Electrician"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8e9d"
+  },
+  "name": "Plumber"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8e9e"
+  },
+  "name": "Painter"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8e9f"
+  },
+  "name": "Carpenter"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8ea0"
+  },
+  "name": "Mason"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8ea1"
+  },
+  "name": "Welder"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8ea2"
+  },
+  "name": "Mechanic"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8ea3"
+  },
+  "name": "AC Technician"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8ea4"
+  },
+  "name": "Gardener"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8ea5"
+  },
+  "name": "House Cleaner"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8ea6"
+  },
+  "name": "Driver"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8ea7"
+  },
+  "name": "Cook"
+},
+{
+  "_id": {
+    "$oid": "67e13cf5f6996b68d5bc8ea8"
+  },
+  "name": "Tailor"
+}]
