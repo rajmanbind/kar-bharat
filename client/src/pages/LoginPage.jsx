@@ -52,8 +52,9 @@ const LoginPage = () => {
         setUser({ ...user, ...data.data });
         setToken(data.token);
         toast.success(data.message);
+      console.log(data);
         setTimeout(() => {
-          navigate(`/${data.data.userType}`);
+          navigate(`/${data?.data?.userType||"/"}`);
         }, 1500);
       }
       if (data.message && data.errors) {
@@ -66,6 +67,7 @@ const LoginPage = () => {
       }
     } catch (error) {
       console.log(error);
+     alert(error.message);
       if (error instanceof z.ZodError) {
         const newErrors = {};
         error.errors.forEach((err) => {

@@ -1,5 +1,6 @@
 import axios from "axios";
-const BASE_URL = import.meta.env.VITE_SERVER_URL + "/auth";
+// const BASE_URL = import.meta.env.VITE_SERVER_URL + "/auth";
+const BASE_URL = "https://server-rajmanbinds-projects.vercel.app/api/v1" + "/auth";
 export const registerUser = async (userData) => {
   try {
     const response =  await axios.post(`${BASE_URL}/register`,userData);
@@ -17,9 +18,9 @@ export const loginUser = async (userData) => {
     console.log("Data: ", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error in Login", error.response.data);
-    // console.log(error);
-    return error.response.data;
+    console.error("Error in Login", error.response?.data||error);
+    console.log("Error in Login",error);
+    return error.response?.data||error;
   }
 };
 

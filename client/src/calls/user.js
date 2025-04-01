@@ -1,5 +1,6 @@
 import axios from "axios";
-const BASE_URL = import.meta.env.VITE_SERVER_URL ;
+// const BASE_URL = import.meta.env.VITE_SERVER_URL ;
+const BASE_URL = "https://server-rajmanbinds-projects.vercel.app/api/v1" ;
 export const getskillList = async (token) => {
   try {
     const response = await axios.get(`${BASE_URL}/admin/skill-list`, {
