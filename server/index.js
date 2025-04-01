@@ -27,28 +27,53 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:8080',"http://192.168.29.194:8080"]; // Frontend URL
+// const allowedOrigins = ['http://localhost:8080',"http://192.168.29.194:8080","https://kaarybharat.vercel.app","https://kaarybharat-rajmanbinds-projects.vercel.app/","https://kaarybharat-kb49agxp0-rajmanbinds-projects.vercel.app","https://kaarybharat-ioc339g2w-rajmanbinds-projects.vercel.app",'https://kaarybharat-9hty1xxzh-rajmanbinds-projects.vercel.app']; // Frontend URL
 app.use(express.json()); // To parse JSON
 app.use(express.urlencoded({ extended: true })); // To parse URL-encoded data
-app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (allowedOrigins.includes(origin) || !origin) {
-          callback(null, true);
-        } else {
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
-      credentials: true,
-      exposedHeaders: ['Authorization'], 
-      allowedHeaders: [
-        'Authorization', 
-        'Content-Type',
-        'X-Requested-With',
-        'Accept'
-      ] 
-    })
-  );
+// app.use(
+//     cors({
+//       origin: (origin, callback) => {
+//         if (allowedOrigins.includes(origin) || !origin) {
+//           callback(null, true);
+//         } else {
+//           callback(new Error('Not allowed by CORS'));
+//         }
+//       },
+//       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//       credentials: true,
+//       exposedHeaders: ['Authorization'], 
+//       allowedHeaders: [
+//         'Authorization', 
+//         'Content-Type',
+//         'X-Requested-With',
+//         'Accept'
+//       ] 
+//     })
+//   );
+
+  // Configure CORS
+// Enable CORS for all routes
+app.use(cors({
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Completely open CORS configuration
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
+// Handle preflight requests
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.sendStatus(200);
+});
 app.use(cookieParser());
 app.use(morgan('dev'));
 
@@ -85,3 +110,5 @@ app.listen(PORT, async() => {
   console.log(`Server running on port ${PORT}`);
   await connectToDatabase();
 });
+
+export default app;

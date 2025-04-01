@@ -178,20 +178,20 @@ export const registerUserTwo = async (req, res, next) => {
     if (req.body.skills) {
       try {
         let skilll = JSON.parse(req.body.skills);
-        const listOfSkill = await WorkerSkill.find({}).session(session)
-         skills = listOfSkill
-        .filter(skill => skilll.includes(skill.name))
-        .map(skill => skill.name); 
+        const listOfSkill = await WorkerSkill.find({}).session(session);
+        skills = listOfSkill
+          .filter((skill) => skilll.includes(skill.name))
+          .map((skill) => skill.name);
       } catch (e) {
         throw e;
       }
     }
-// console.log("ADDRESS",address.street)
+    // console.log("ADDRESS",address.street)
     // Create validated data
     const validatedData = {
       ...req.body,
       skills,
-      address:JSON.parse(req.body.address)
+      address: JSON.parse(req.body.address),
     };
 
     // Validate user data with Zod
@@ -258,57 +258,40 @@ export const registerUserTwo = async (req, res, next) => {
     //   throw new Error("Profile image is required!");
     // }
     let profileImage = null;
-    if (!userExists.profileImage) {
-      console.log("Uploaded file:", req.file); // This will show the single uploaded file
-      let profileImageLocalPath;
-      if (req.file) {
-        profileImageLocalPath = req.file.path; // Access the path directly from req.file
-        console.log("Profile image path:", profileImageLocalPath);
-      }
-
-      if (!profileImageLocalPath) {
-        res.status(400);
-        throw new Error("Profile image is required!");
-      }
-
-      try {
-        profileImage = await uplaodCloudinary(profileImageLocalPath); // Fixed typo in function name
-      } catch (uploadError) {
-        console.error("Cloudinary upload error:", uploadError);
-        res.status(500);
-        throw new Error("Failed to upload profile image");
-      }
-
-      if (!profileImage) {
-        res.status(400);
-        throw new Error("Profile image upload failed!");
-      }
-    } else {
-      let profileImageLocalPath;
-      if (req.file) {
-        profileImageLocalPath = req.file.path; // Access the path directly from req.file
-        console.log("Profile image path:", profileImageLocalPath);
-      }
-
-      if (!profileImageLocalPath) {
-        console.log("Profile image is required!");
-      }
-
-      try {
-        profileImage = await uplaodCloudinary(profileImageLocalPath); // Fixed typo in function name
-      } catch (uploadError) {
-        console.error("Cloudinary upload error:", uploadError);
-        console.log("Failed to upload profile image");
-      }
-
-      if (!profileImage) {
-        console.log("Profile image upload failed!");
-      }
+    // if (!userExists.profileImage) {
+    console.log("Uploaded file:", req.file); // This will show the single uploaded file
+    let profileImageLocalPath;
+    if (req.file) {
+      profileImageLocalPath = req.file.path; // Access the path directly from req.file
+      console.log("Profile image path:", profileImageLocalPath);
     }
+
+    if (!profileImageLocalPath) {
+      res.status(400);
+      throw new Error("Profile image is required!");
+    }
+
+    try {
+      // profileImage = await uplaodCloudinary(profileImageLocalPath); // Fixed typo in function name
+      profileImage = await uplaodCloudinary(
+        req.file.buffer,
+        `profile_${Date.now()}`
+      ); // Fixed typo in function name
+    } catch (uploadError) {
+      console.error("Cloudinary upload error:", uploadError);
+      res.status(500);
+      throw new Error("Failed to upload profile image");
+    }
+
+    if (!profileImage) {
+      res.status(400);
+      throw new Error("Profile image upload failed!");
+    }
+
     // Prepare update object with only provided fields
     const updateData = {
       ...(phone && { phone }),
-      ...(address && { address:JSON.parse(req.body.address) }),
+      ...(address && { address: JSON.parse(req.body.address) }),
       ...(skills && { skills }),
       ...(validatedBrokerId && { brokerId: validatedBrokerId }),
       ...(profileImage && { profileImage: profileImage.secure_url }),
